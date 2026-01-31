@@ -1,0 +1,48 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'DynamoDB table for URL Shortener'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - prod
+    Description: Environment name
+
+Resources:
+  URLShortenerTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub 'url-shortener-${Environment}'
+      BillingMode: PAY_PER_REQUEST  # On-demand pricing, auto-scales
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH    # Partition key
+        - AttributeName: SK
+          KeyType: RANGE   # Sort key
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES  # Enable streams for future analytics
+      Tags:
+        - Key: Project
+          Value: URLShortener
+        - Key: Environment
+          Value: !Ref Environment
+
+Outputs:
+  TableName:
+    Description: Name of the DynamoDB table
+    Value: !Ref URLShortenerTable
+    Export:
+      Name: !Sub '${AWS::StackName}-TableName'
+
+  TableArn:
+    Description: ARN of the DynamoDB table
+    Value: !GetAtt URLShortenerTable.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-TableArn'
